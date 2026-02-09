@@ -1,0 +1,110 @@
+spring:
+  application:
+    name: vendor-compliance-risk-management-system
+  
+  # DataSource Configuration
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/vendor_compliance}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  # JPA/Hibernate Configuration
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+        jdbc:
+          batch_size: 20
+          fetch_size: 50
+        order_inserts: true
+        order_updates: true
+    show-sql: ${SPRING_JPA_SHOW_SQL:false}
+  
+  # Security Configuration
+  security:
+    jwt:
+      secret: ${JWT_SECRET:default_secret_change_me_in_production}
+      expiration: ${JWT_EXPIRATION:86400000}
+  
+  # Task Scheduling Configuration
+  task:
+    scheduling:
+      pool:
+        size: ${SPRING_TASK_SCHEDULING_POOL_SIZE:2}
+      thread-name-prefix: vendor-scheduling-
+      shutdown:
+        await-termination: true
+        await-termination-period: 20s
+    execution:
+      pool:
+        core-size: ${SPRING_TASK_EXECUTION_POOL_CORE_SIZE:2}
+        max-size: 5
+        queue-capacity: 100
+      thread-name-prefix: vendor-executor-
+  
+  # Server Configuration
+  servlet:
+    context-path: /api
+
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+  compression:
+    enabled: true
+    min-response-size: 1024
+
+# Logging Configuration
+logging:
+  level:
+    root: ${LOGGING_LEVEL_ROOT:INFO}
+    com.vendorcompliance: ${LOGGING_LEVEL_COM_VENDORCOMPLIANCE:INFO}
+    org.springframework.security: WARN
+    org.hibernate: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/application.log
+    max-size: 10MB
+    max-history: 10
+
+# Management/Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# Application Profiles
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  servlet:
+    context-path: /api
+
+logging:
+  level:
+    root: WARN
+    com.vendorcompliance: INFO
